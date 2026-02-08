@@ -6,7 +6,7 @@ Thank you for your interest in contributing! Here's how to get started.
 
 ```bash
 # Clone
-git clone https://github.com/openagentschool/ignitionstack.git
+git clone https://github.com/bhakthan/ignitionstack.git
 cd ignitionstack
 
 # Create virtual environment

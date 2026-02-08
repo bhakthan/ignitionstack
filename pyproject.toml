@@ -46,9 +46,9 @@ dev = [
 ignition = "ignition.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/openagentschool/ignitionstack"
+Homepage = "https://github.com/bhakthan/ignitionstack"
 Documentation = "https://openagentschool.org"
-Repository = "https://github.com/openagentschool/ignitionstack"
+Repository = "https://github.com/bhakthan/ignitionstack"
 
 [tool.setuptools.packages.find]
 include = ["ignition*"]
