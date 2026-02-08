@@ -1,0 +1,48 @@
+// app.bicep — App Service + Plan
+// Project: {{ project_name }}
+
+param projectName string
+param location string
+param appInsightsKey string = ''
+
+resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
+  name: 'plan-${projectName}'
+  location: location
+  sku: {
+    name: 'B1'
+    tier: 'Basic'
+  }
+  kind: 'linux'
+  properties: {
+    reserved: true
+  }
+}
+
+resource app 'Microsoft.Web/sites@2023-12-01' = {
+  name: 'app-${projectName}'
+  location: location
+  kind: 'app,linux'
+  properties: {
+    serverFarmId: plan.id
+    siteConfig: {
+      linuxFxVersion: 'PYTHON|3.12'
+      appSettings: [
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appInsightsKey
+        }
+        {
+          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
+          value: 'true'
+        }
+      ]
+    }
+  }
+  tags: {
+    project: projectName
+    managedBy: 'ignitionstack'
+  }
+}
+
+output appUrl string = 'https://${app.properties.defaultHostName}'
+output appName string = app.name

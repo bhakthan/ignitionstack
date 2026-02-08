@@ -1,0 +1,29 @@
+# AI Integration Steps — merge into your existing CI/CD pipeline
+# Detected CI/CD: {{ cicd }}
+# Project: {{ project_name }}
+#
+# Copy these steps into your workflow file.
+
+name: ai-integration
+
+# Add these steps to your existing build/deploy job:
+steps:
+  - name: Deploy AI Infrastructure
+    if: github.ref == 'refs/heads/main'
+    run: |
+      az deployment group create \
+        --resource-group ${{ '{{' }} env.RESOURCE_GROUP {{ '}}' }} \
+        --template-file ignition-plug/infra-delta/delta.bicep
+
+  - name: Run Agent State Migration
+    run: |
+      psql "${{ '{{' }} secrets.DATABASE_URL {{ '}}' }}" \
+        -f ignition-plug/db-delta/001_agent_state.sql
+
+  - name: Test Agent Endpoints
+    run: |
+      curl -sf http://localhost:8000/api/v1/agents/health
+
+  - name: Index Data for RAG
+    run: |
+      python -m adapters.rag_connector --index

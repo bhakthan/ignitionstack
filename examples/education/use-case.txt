@@ -1,0 +1,56 @@
+# LearnTrack — Student Progress Tracking Platform
+
+## Overview
+Build an adaptive learning platform for a K-12 school district serving 50,000 students across 85 schools. The platform tracks individual student progress, identifies learning gaps, and recommends personalized interventions.
+
+## Core Features
+
+### Student Dashboard
+- Visual progress map showing mastery across subjects and standards
+- Daily learning streak tracking with gamification elements
+- Portfolio of work samples with AI-generated feedback
+- Goal setting and reflection journal
+
+### Adaptive Assessment Engine
+- Standards-aligned formative assessments (Common Core, NGSS)
+- Question difficulty adapts based on student performance (IRT model)
+- Immediate feedback with scaffolded hints
+- Misconception detection and targeted remediation
+
+### Teacher Intelligence Agent
+- Natural language queries about class performance ("Which students are struggling with fractions?")
+- Automated intervention recommendations based on learning patterns
+- Lesson plan suggestions aligned to identified gaps
+- Parent communication drafts for progress updates
+
+### Learning Analytics RAG
+- Semantic search across curriculum documents, lesson plans, and standards
+- Research-backed intervention suggestions (What Works Clearinghouse data)
+- Cross-school comparison and best practice sharing
+- Longitudinal growth analysis (year-over-year)
+
+### Parent Portal
+- Real-time progress visibility (age-appropriate detail level)
+- Communication hub with teachers
+- Resource recommendations for at-home support
+- Conference scheduling
+
+## Non-Functional Requirements
+- FERPA and COPPA compliance
+- Accessibility: WCAG 2.1 AA minimum
+- Support 50,000 concurrent student sessions during testing windows
+- Offline capability for assessments (sync when reconnected)
+- Multi-language support (English, Spanish minimum)
+
+## User Roles
+- Student (dashboard, assessments, portfolio)
+- Teacher (analytics, interventions, communication)
+- School Administrator (building-level reports, teacher support)
+- District Administrator (cross-school analytics, standards alignment)
+- Parent/Guardian (progress monitoring, communication)
+
+## Technical Constraints
+- Must integrate with existing SIS (Student Information System) via Ed-Fi API
+- LTI 1.3 integration with existing LMS (Canvas/Google Classroom)
+- Assessment items must align to state standards framework
+- Data must be deletable per COPPA right-to-delete requirements

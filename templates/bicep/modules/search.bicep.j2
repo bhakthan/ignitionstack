@@ -1,0 +1,26 @@
+// search.bicep — Azure AI Search (agentic RAG)
+// Project: {{ project_name }}
+
+param projectName string
+param location string
+
+resource search 'Microsoft.Search/searchServices@2024-03-01-preview' = {
+  name: 'search-${projectName}'
+  location: location
+  sku: {
+    name: 'basic'
+  }
+  properties: {
+    replicaCount: 1
+    partitionCount: 1
+    hostingMode: 'default'
+    semanticSearch: 'free'
+  }
+  tags: {
+    project: projectName
+    managedBy: 'ignitionstack'
+  }
+}
+
+output searchEndpoint string = 'https://${search.name}.search.windows.net'
+output searchName string = search.name

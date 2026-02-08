@@ -1,0 +1,40 @@
+-- Agent State Migration — {{ project_name }}
+-- Additive tables for agent conversation history and state management.
+-- Run this AFTER your existing migrations.
+-- Detected database: {{ database }}
+
+CREATE TABLE IF NOT EXISTS agent_conversations (
+    id              SERIAL PRIMARY KEY,
+    session_id      UUID NOT NULL DEFAULT gen_random_uuid(),
+    agent_name      VARCHAR(100) NOT NULL,
+    user_id         VARCHAR(255),
+    started_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ended_at        TIMESTAMPTZ,
+    metadata        JSONB DEFAULT '{}'::jsonb
+);
+
+CREATE TABLE IF NOT EXISTS agent_messages (
+    id              SERIAL PRIMARY KEY,
+    conversation_id INTEGER NOT NULL REFERENCES agent_conversations(id),
+    role            VARCHAR(20) NOT NULL CHECK (role IN ('user','assistant','system','tool')),
+    content         TEXT NOT NULL,
+    tool_calls      JSONB,
+    tokens_used     INTEGER DEFAULT 0,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS agent_state (
+    id              SERIAL PRIMARY KEY,
+    agent_name      VARCHAR(100) NOT NULL,
+    state_key       VARCHAR(255) NOT NULL,
+    state_value     JSONB NOT NULL,
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (agent_name, state_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_conversations_session
+    ON agent_conversations(session_id);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation
+    ON agent_messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_agent_state_lookup
+    ON agent_state(agent_name, state_key);

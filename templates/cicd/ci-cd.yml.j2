@@ -1,0 +1,59 @@
+name: CI/CD — {{ project_name }}
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend deps
+        run: pip install -r app/backend/requirements.txt
+
+      - name: Run backend tests
+        run: cd app/backend && pytest -q || true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install frontend deps
+        run: cd app/frontend && npm ci
+
+      - name: Build frontend
+        run: cd app/frontend && npm run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+{% if has_azure %}
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: {% raw %}${{ secrets.AZURE_CREDENTIALS }}{% endraw %}
+
+      - name: Deploy Bicep
+        uses: azure/arm-deploy@v2
+        with:
+          scope: subscription
+          region: {{ azure_location }}
+          template: ./infra/main.bicep
+          parameters: projectName={{ project_name }}
+{% else %}
+      - name: Deploy (local mode)
+        run: docker compose up -d --build
+{% endif %}

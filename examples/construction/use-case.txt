@@ -1,0 +1,58 @@
+# SiteSync — Smart Construction Project Management Platform
+
+## Overview
+Build a construction project management platform for Apex Builders Group (fictitious), a commercial construction firm managing 40+ active job sites with $1.2B in annual contracts spanning office towers, hospitals, and mixed-use developments.
+
+## Core Features
+
+### Project Command Center
+- Real-time project timeline with baseline vs. actual tracking
+- Budget burn-down dashboards with cost-to-complete forecasting
+- Weather impact analysis and schedule auto-adjustment
+- Multi-project portfolio view with red/amber/green status
+
+### Building Information Modeling (BIM) Integration
+- 3D model viewer with issue markup and clash detection results
+- RFI (Request for Information) management linked to model elements
+- Change order tracking with cost and schedule impact analysis
+- As-built documentation linked to BIM components
+
+### Safety & Compliance Agent
+- Daily safety checklist generation based on active trades and weather
+- OSHA compliance monitoring with automatic citation risk scoring
+- Incident reporting with root cause analysis workflow
+- Subcontractor safety score tracking and prequalification
+
+### Field Operations Mobile App
+- Daily log entry with photo/video capture and GPS tagging
+- Punch list management with trade assignment and due dates
+- Material delivery tracking and storage location mapping
+- Time card entry with geo-fencing verification
+
+### Document Management
+- Auto-classification of submittals, RFIs, change orders, and drawings
+- Version control with redline comparison
+- Approval workflow engine with escalation rules
+- Full-text search with RAG-powered Q&A over project documents
+
+## Non-Functional Requirements
+- Offline-capable mobile app (sync when connectivity restored)
+- Support 500+ concurrent field users across 40 sites
+- Document storage: 10TB+ with 10-year retention
+- Real-time notifications: < 5 second delivery for safety alerts
+- 99.9% uptime during business hours (6 AM – 8 PM local)
+
+## User Roles
+- Project Manager (schedules, budgets, RFIs, change orders)
+- Superintendent (daily logs, field coordination, safety)
+- Safety Director (compliance, incidents, training)
+- Estimator (cost tracking, change order analysis)
+- Subcontractor (daily logs, punch lists, time cards)
+- Owner/Client (read-only dashboard, milestone tracking)
+
+## Technical Constraints
+- BIM integration via IFC (Industry Foundation Classes) open standard
+- Accounting system integration: Sage 300 CRE or Viewpoint Vista
+- Scheduling integration: Primavera P6 or Microsoft Project
+- Must support low-bandwidth satellite connections on remote sites
+- Data residency: US and Canada regions

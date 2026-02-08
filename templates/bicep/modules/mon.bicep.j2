@@ -1,0 +1,37 @@
+// mon.bicep — Application Insights + Log Analytics
+// Project: {{ project_name }}
+
+param projectName string
+param location string
+
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
+  name: 'log-${projectName}'
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018'
+    }
+    retentionInDays: 30
+  }
+  tags: {
+    project: projectName
+    managedBy: 'ignitionstack'
+  }
+}
+
+resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'ai-insights-${projectName}'
+  location: location
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: logAnalytics.id
+  }
+  tags: {
+    project: projectName
+    managedBy: 'ignitionstack'
+  }
+}
+
+output instrumentationKey string = appInsights.properties.InstrumentationKey
+output logAnalyticsId string = logAnalytics.id

@@ -1,0 +1,60 @@
+# ShelfSmart — Intelligent Retail Operations Platform
+
+## Overview
+Build an intelligent retail operations platform for BrightMart (fictitious), a mid-size retail chain with 250 stores across 15 states, an e-commerce site handling 2M monthly visits, and 8 distribution centers fulfilling 500K orders per month.
+
+## Core Features
+
+### Unified Inventory Management
+- Real-time inventory visibility across all stores, DCs, and in-transit
+- Automated replenishment with demand-driven reorder points
+- Store transfer optimization (reduce overstock at Store A, fill gaps at Store B)
+- Dead stock identification and markdown recommendation engine
+
+### Demand Forecasting Agent
+- ML-based demand forecasting at SKU × location × day granularity
+- Seasonal adjustment with event overlay (holidays, promotions, weather)
+- New product launch demand estimation using similar-item modeling
+- Promotional lift prediction for campaign planning
+
+### Customer Intelligence
+- Unified customer profiles across in-store POS and e-commerce
+- Personalized recommendation engine (frequently bought together, complementary items)
+- Customer lifetime value scoring and segmentation
+- Loyalty program analytics with engagement trend tracking
+
+### Omnichannel Order Fulfillment
+- Buy-online-pickup-in-store (BOPIS) orchestration
+- Ship-from-store routing with cost/speed optimization
+- Real-time order status tracking across all fulfillment channels
+- Returns processing with automated disposition routing
+
+### Pricing & Promotion Engine
+- Competitive price monitoring and dynamic pricing suggestions
+- Promotion effectiveness analysis (incremental sales vs. margin erosion)
+- Clearance pricing optimization to maximize recovery
+- Price elasticity modeling by product category and region
+
+## Non-Functional Requirements
+- Inventory sync latency: < 30 seconds across all locations
+- Support 10,000 concurrent users (staff + e-commerce shoppers)
+- PCI-DSS compliance for payment data
+- Handle Black Friday traffic spikes (10x normal load)
+- API response time: < 100ms for product catalog, < 500ms for recommendations
+- Data retention: 5 years for transaction data, 2 years for clickstream
+
+## User Roles
+- Store Manager (inventory, transfers, local promotions)
+- Merchandiser (pricing, promotions, assortment planning)
+- Supply Chain Analyst (replenishment, DC operations, logistics)
+- E-commerce Manager (online catalog, personalization, fulfillment)
+- Customer Service Rep (order lookup, returns, loyalty inquiries)
+- Executive (KPI dashboards, P&L by channel)
+
+## Technical Constraints
+- POS integration: NCR or Oracle Retail Xstore
+- E-commerce platform: headless commerce API (Commercetools or similar)
+- ERP integration: SAP Retail or Microsoft Dynamics 365
+- Warehouse management: Manhattan Associates or Blue Yonder
+- Payment processing: PCI-DSS Level 1 compliant infrastructure
+- CDN for product images and catalog data (< 50ms global latency)

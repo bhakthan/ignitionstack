@@ -1,0 +1,19 @@
+// rg.bicep — Resource Group
+// Project: {{ project_name }}
+
+targetScope = 'subscription'
+
+param projectName string
+param location string
+
+resource rg 'Microsoft.Resources/resourceGroups@2024-03-01' = {
+  name: 'rg-${projectName}'
+  location: location
+  tags: {
+    project: projectName
+    managedBy: 'ignitionstack'
+  }
+}
+
+output resourceGroup object = rg
+output resourceGroupName string = rg.name

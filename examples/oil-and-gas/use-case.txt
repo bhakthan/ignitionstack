@@ -1,0 +1,57 @@
+# PredictMaint — Equipment Maintenance Prediction System
+
+## Overview
+Build a predictive maintenance system for OceanDrill Solutions (fictitious), an offshore drilling operator with 15 rigs, each containing 2,000+ monitored components generating 50GB/day of sensor telemetry.
+
+## Core Features
+
+### Sensor Data Pipeline
+- Real-time ingestion from IoT sensors (vibration, temperature, pressure, flow rate)
+- Edge preprocessing on rig (downsampling, anomaly pre-filtering)
+- Time-series database for historical trend analysis
+- Data quality monitoring with automated gap detection
+
+### Predictive Failure Agent
+- ML models for remaining useful life (RUL) estimation per component
+- Anomaly detection using statistical and deep learning approaches
+- Failure mode classification (bearing wear, seal degradation, corrosion, etc.)
+- Confidence scoring with explanation of prediction factors
+
+### Maintenance Scheduling
+- Optimization engine for maintenance windows (minimize production impact)
+- Parts inventory forecasting based on predicted failures
+- Cost-benefit analysis: preventive vs. run-to-failure
+- Integration with work order management system
+
+### Safety Monitoring Dashboard
+- Real-time equipment health heatmap across all rigs
+- Critical alert system with escalation chains
+- Regulatory compliance tracking (API RP 580, OSHA 1910)
+- Incident root cause analysis with knowledge base RAG
+
+### Reporting & Analytics
+- Monthly reliability reports per rig and equipment class
+- Trend analysis: MTBF, MTTR, availability by equipment type
+- Cost avoidance tracking (failures prevented × estimated cost)
+- Executive dashboard with fleet-wide KPIs
+
+## Non-Functional Requirements
+- Sensor data latency: < 10 seconds from rig to cloud
+- Handle 15 rigs × 2,000 sensors × 1 Hz = 30,000 data points/second
+- System must function with intermittent satellite connectivity
+- Safety-critical alerts delivered within 30 seconds
+- Data retention: 7 years (regulatory requirement)
+
+## User Roles
+- Field Technician (work orders, equipment status, mobile app)
+- Reliability Engineer (failure analysis, model tuning, reports)
+- Rig Manager (scheduling, safety dashboard, cost tracking)
+- Fleet Manager (cross-rig analytics, executive KPIs)
+- Safety Officer (compliance, incident analysis, alerts)
+
+## Technical Constraints
+- Edge computing: Azure IoT Edge on each rig
+- Connectivity: satellite uplink (limited bandwidth, high latency)
+- Must support offline operation for 72 hours
+- Integration with OSIsoft PI historian for legacy sensor data
+- ML models must be retrainable with minimal downtime

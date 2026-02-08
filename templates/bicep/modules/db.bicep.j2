@@ -1,0 +1,45 @@
+// db.bicep — Cosmos DB (NoSQL)
+// Project: {{ project_name }}
+
+param projectName string
+param location string
+
+resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2024-02-15-preview' = {
+  name: 'cosmos-${projectName}'
+  location: location
+  kind: 'GlobalDocumentDB'
+  properties: {
+    databaseAccountOfferType: 'Standard'
+    consistencyPolicy: {
+      defaultConsistencyLevel: 'Session'
+    }
+    locations: [
+      {
+        locationName: location
+        failoverPriority: 0
+      }
+    ]
+    capabilities: [
+      {
+        name: 'EnableServerless'
+      }
+    ]
+  }
+  tags: {
+    project: projectName
+    managedBy: 'ignitionstack'
+  }
+}
+
+resource database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-02-15-preview' = {
+  parent: cosmos
+  name: projectName
+  properties: {
+    resource: {
+      id: projectName
+    }
+  }
+}
+
+output cosmosEndpoint string = cosmos.properties.documentEndpoint
+output cosmosName string = cosmos.name

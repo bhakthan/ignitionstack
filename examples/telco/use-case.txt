@@ -1,0 +1,58 @@
+# NetPulse — Telecom Network Operations Platform
+
+## Overview
+Build a network operations and customer experience platform for ClearSignal Networks (fictitious), a regional telecom operator with 3 million subscribers, 12,000 cell towers, and a growing 5G rollout across 8 metropolitan areas.
+
+## Core Features
+
+### Network Operations Center (NOC) Dashboard
+- Real-time network topology visualization with health indicators
+- Cell tower performance metrics (throughput, latency, packet loss, handover success)
+- Automated anomaly detection with severity classification
+- Capacity planning heatmaps by geography and time of day
+
+### Network Fault Agent
+- Automated root cause analysis across RAN, transport, and core layers
+- Correlated alarm management (suppress storm alerts, surface root cause)
+- Self-healing automation for known fault patterns (restart, reroute, failover)
+- Predictive outage detection using traffic pattern analysis
+
+### Customer Experience Management
+- Per-subscriber quality of experience scoring
+- Proactive issue detection before customer calls support
+- Natural language troubleshooting assistant for call center agents
+- Churn prediction model with retention campaign triggers
+
+### 5G Slice Management
+- Network slice provisioning and lifecycle management
+- SLA monitoring per slice (eMBB, URLLC, mMTC)
+- Dynamic resource allocation based on demand
+- Slice performance analytics and billing integration
+
+### Service Assurance & Reporting
+- KPI dashboards aligned to 3GPP standards
+- Regulatory compliance reporting (FCC, local telecom authority)
+- SLA breach tracking with automated penalty calculations
+- Monthly network performance executive reports
+
+## Non-Functional Requirements
+- Process 500,000 network events per second
+- Alarm correlation latency: < 2 seconds
+- Dashboard refresh: real-time (< 1 second for critical metrics)
+- Support 200 concurrent NOC operators
+- 99.999% platform availability (five nines)
+- Data retention: 2 years detailed, 7 years aggregated
+
+## User Roles
+- NOC Operator (monitoring, alarm management, dispatch)
+- Network Engineer (root cause analysis, configuration, optimization)
+- Customer Care Agent (troubleshooting, ticket management)
+- Capacity Planner (forecasting, slice management)
+- Executive (KPI dashboards, reports)
+
+## Technical Constraints
+- Integration with OSS/BSS stack (Nokia NetAct, Ericsson ENM, or similar)
+- Streaming data: Apache Kafka or Azure Event Hubs for event ingestion
+- Protocol support: SNMP, gNMI, NETCONF, syslog
+- Must handle multi-vendor RAN equipment (Ericsson, Nokia, Samsung)
+- Geographic redundancy: active-active across two Azure regions

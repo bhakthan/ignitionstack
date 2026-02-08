@@ -1,0 +1,5 @@
+recursive-include templates *.j2 *.yml *.yaml *.json
+recursive-include examples *.txt *.md
+include LICENSE README.md CHANGELOG.md CONTRIBUTING.md
+include requirements.txt requirements-dev.txt
+include .env.example

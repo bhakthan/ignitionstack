@@ -1,0 +1,81 @@
+"""Agent Middleware — routes requests to AI agents for {{ project_name }}.
+
+Drop this into your existing {{ framework }} application to add
+agent-powered endpoints alongside your current API surface.
+
+Detected stack: {{ language }} / {{ framework }}
+Auth: {{ auth }}
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+
+class AgentRouter:
+    """Lightweight router that delegates to Microsoft Agent Framework."""
+
+    def __init__(self, agent_config_path: str = "agents/agent-config.json"):
+        self.config = self._load_config(agent_config_path)
+
+    @staticmethod
+    def _load_config(path: str) -> dict[str, Any]:
+        try:
+            with open(path, encoding="utf-8") as f:
+                return json.load(f)
+        except FileNotFoundError:
+            logger.warning("Agent config not found at %s", path)
+            return {"agents": []}
+
+    async def route(self, intent: str, payload: dict[str, Any]) -> dict[str, Any]:
+        """Route a request to the appropriate agent."""
+        agent = self._pick_agent(intent)
+        logger.info("Routing intent=%s to agent=%s", intent, agent)
+        # TODO: call Microsoft Agent Framework SDK
+        return {"status": "routed", "intent": intent, "agent": agent}
+
+    def _pick_agent(self, intent: str) -> str:
+        agents = self.config.get("agents", [])
+        return agents[0].get("name", "default") if agents else "default"
+
+
+{%- if framework == 'fastapi' %}
+
+# --- FastAPI integration ---
+def mount(app):
+    """Mount agent routes on an existing FastAPI app."""
+    from fastapi import Request
+
+    _router = AgentRouter()
+
+    @app.post("/api/v1/agents/route")
+    async def agent_route(request: Request):
+        body = await request.json()
+        return await _router.route(body.get("intent", ""), body.get("payload", {}))
+
+    @app.get("/api/v1/agents/health")
+    async def agent_health():
+        return {"status": "ok", "agents": len(_router.config.get("agents", []))}
+
+{%- elif framework == 'express' %}
+
+// --- Express.js integration ---
+// const agentRouter = require('./adapters/agent_middleware');
+// app.use('/api/v1/agents', agentRouter);
+
+{%- elif framework == 'aspnet' %}
+
+// --- ASP.NET integration ---
+// builder.Services.AddSingleton<AgentRouter>();
+// app.MapPost("/api/v1/agents/route", async (AgentRouter router, HttpContext ctx) => { ... });
+
+{%- else %}
+
+# --- Generic integration ---
+# Import AgentRouter and call router.route(intent, payload) from your app.
+
+{%- endif %}

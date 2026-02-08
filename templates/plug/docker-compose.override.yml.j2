@@ -1,0 +1,24 @@
+# Docker Compose Override — AI sidecar for {{ project_name }}
+# Usage: docker compose -f docker-compose.yml -f ignition-plug/infra-delta/docker-compose.override.yml up
+services:
+  ai-search:
+    image: mcr.microsoft.com/azure-cognitive-services/textanalytics/healthcare:latest
+    ports:
+      - "5001:5000"
+    environment:
+      - EULA=accept
+
+  redis-agent-state:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+
+  agent-sidecar:
+    build:
+      context: ../adapters
+      dockerfile: Dockerfile
+    depends_on:
+      - redis-agent-state
+    environment:
+      - REDIS_URL=redis://redis-agent-state:6379
+      - PROJECT_NAME={{ project_name }}

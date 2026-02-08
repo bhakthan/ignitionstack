@@ -1,0 +1,50 @@
+# RiskView — Portfolio Risk Assessment Dashboard
+
+## Overview
+Build a real-time portfolio risk assessment dashboard for a mid-size investment management firm managing $2B AUM across equity, fixed income, and alternatives.
+
+## Core Features
+
+### Portfolio Analytics Engine
+- Real-time VaR (Value at Risk) calculation: Historical, Parametric, Monte Carlo
+- Stress testing scenarios (2008 crisis, COVID crash, rate shock, custom)
+- Factor decomposition (Fama-French, sector, geography, currency)
+- Performance attribution (Brinson-Fachler model)
+
+### Risk Monitoring Agent
+- Continuous monitoring of portfolio risk metrics against limits
+- Automated alert generation when thresholds breached
+- Natural language risk summaries for portfolio managers
+- "What-if" analysis: simulate trades before execution
+
+### Regulatory Reporting
+- Automated generation of risk reports (Basel III, MiFID II format)
+- Trade surveillance for unusual patterns
+- Best execution analysis
+- Audit trail for all risk decisions
+
+### Client Dashboard
+- Interactive portfolio heatmap by sector/geography/asset class
+- Drawdown analysis and recovery timelines
+- Custom benchmark comparison
+- PDF report generation for quarterly reviews
+
+## Non-Functional Requirements
+- Data refresh: < 5 second latency for market data
+- Support 500 concurrent portfolio managers
+- SOX compliance for financial reporting
+- Encrypt all data at rest (AES-256) and in transit (TLS 1.3)
+- 99.95% uptime during market hours (9:30 AM - 4:00 PM ET)
+
+## User Roles
+- Portfolio Manager (analytics, what-if, alerts)
+- Risk Officer (monitoring, limits, reports)
+- Compliance Analyst (surveillance, audit, regulatory filing)
+- Client (read-only dashboard, reports)
+- Admin (user management, system config)
+
+## Technical Constraints
+- Market data feed: Bloomberg B-PIPE or Refinitiv
+- Portfolio data: integration with order management system (FIX protocol)
+- Calculations must be reproducible (deterministic given same inputs)
+- Multi-currency support (USD, EUR, GBP, JPY, CHF minimum)

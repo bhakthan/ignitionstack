@@ -1,0 +1,27 @@
+// kv.bicep — Key Vault
+// Project: {{ project_name }}
+
+param projectName string
+param location string
+
+resource kv 'Microsoft.KeyVault/vaults@2023-07-01' = {
+  name: 'kv-${projectName}'
+  location: location
+  properties: {
+    sku: {
+      family: 'A'
+      name: 'standard'
+    }
+    tenantId: subscription().tenantId
+    enableRbacAuthorization: true
+    enableSoftDelete: true
+    softDeleteRetentionInDays: 7
+  }
+  tags: {
+    project: projectName
+    managedBy: 'ignitionstack'
+  }
+}
+
+output kvUri string = kv.properties.vaultUri
+output kvName string = kv.name
