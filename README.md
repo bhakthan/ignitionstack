@@ -4,6 +4,8 @@
 > the next decade ships agents — autonomous, goal-driven units of software that reason,
 > act, and learn. IgnitionStack is how you ship them.
 
+![IgnitionStack — From Use Case to Production Azure Workload](public/images/IgnitionStack_Explained.png)
+
 **Input:** Screenshot, text, PDF, PPTX, or Word doc describing a use case
 **Output:** Fully deployed Azure project — Bicep infra, Microsoft Foundry agents, database, app code, GitHub repo, CI/CD pipeline
 **Engine:** 20 Ralph-loop iterations using your chosen model via `gh copilot`
