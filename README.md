@@ -9,7 +9,7 @@
 **Engine:** 20 Ralph-loop iterations using your chosen model via `gh copilot`
 
 ```
-📄 Input → 🔍 Parse → 🧩 Decompose → 📋 PRD.json → 🏗️ Scaffold → 🔄 Ralph ×20 → ✅ Production
+📄 Input → 🔍 Parse → 🧩 Decompose → 📋 PRD.json → 🏗️ Scaffold → 🧠 Claude Skills → 🔄 Ralph ×20 → 🚀 Production
 ```
 
 ---
@@ -41,7 +41,7 @@
 | Agent Framework | Microsoft Agent Framework | Domain-specific agent configuration |
 | App Scaffold | FastAPI + React (Vite) | Generated backend and frontend stubs |
 | CI/CD | GitHub Actions | Build → Test → Deploy workflow |
-| Testing | pytest + ruff | Unit tests (103) and linting |
+| Testing | pytest + ruff | Unit tests (124) and linting |
 | Containerization | Docker | Reproducible builds and local mode |
 
 ---
@@ -106,7 +106,7 @@ Then you run `ralph.sh` — it iterates 20 times, each time reading the PRD, pic
 
 ---
 
-## The 7 Pipeline Stages
+## The 8 Pipeline Stages
 
 | # | Stage | What happens |
 |---|-------|-------------|
@@ -115,8 +115,9 @@ Then you run `ralph.sh` — it iterates 20 times, each time reading the PRD, pic
 | 3 | **Decompose** | Breaks requirements into 30-50 atomic tasks (Decomposition Test) |
 | 4 | **PRD.json** | Produces the prioritized task backlog + initializes progress.txt |
 | 5 | **Scaffold** | Generates Bicep infra, Foundry agents, DB schema, app code, CI/CD |
-| 6 | **Ralph ×20** | Executes 20 iterations: read PRD → implement → test → commit |
-| 7 | **Production** | Deployed Azure workload + GitHub repo + documentation |
+| 6 | **Claude Skills** | Generates SKILL.md folders per Anthropic spec (ops, agent, data, integrate) |
+| 7 | **Ralph ×20** | Executes 20 iterations: read PRD → implement → test → commit |
+| 8 | **Production** | Deployed Azure workload + GitHub repo + documentation |
 
 ---
 
@@ -268,7 +269,7 @@ ignition/
 │   ├── config.py                    # IgnitionConfig (Pydantic) — env + CLI flags
 │   ├── llm.py                       # OpenAI SDK wrapper — chat(), chat_json()
 │   ├── models.py                    # Task, PRD, ParsedRequirements, DiscoveryResult
-│   ├── runner.py                    # IgnitionStackAgent — 7-stage orchestrator
+│   ├── runner.py                    # IgnitionStackAgent — 8-stage orchestrator
 │   ├── verify.py                    # Post-generation output validation (scaffold + plug)
 │   ├── tutorial.py                  # Rich tutorial panels, quizzes, scoring
 │   └── stages/                      # Pipeline stage implementations
@@ -287,7 +288,8 @@ ignition/
 │           ├── github.py            # git init + optional gh repo create
 │           ├── cicd.py              # GitHub Actions CI/CD workflow
 │           ├── ralph.py             # ralph.sh + ralph.ps1 loop scripts
-│           └── plug.py              # Plug Mode — adapters, infra-delta, db-delta
+│           ├── plug.py              # Plug Mode — adapters, infra-delta, db-delta
+│           └── skills.py            # Claude Skills — SKILL.md generation (Anthropic spec)
 ├── templates/                       # Jinja2 templates for code generation
 │   ├── bicep/
 │   │   ├── main.bicep.j2            # Subscription-scoped orchestrator
@@ -303,6 +305,11 @@ ignition/
 │       ├── docker-compose.override.yml.j2  # Local AI sidecar
 │       ├── 001_agent_state.sql.j2   # Agent state migration
 │       └── ai-steps.yml.j2          # CI/CD patch steps
+│   └── skills/                      # Claude Skills templates
+│       ├── ops-SKILL.md.j2          # Deploy/run/debug skill
+│       ├── agent-SKILL.md.j2        # Agent interaction skill
+│       ├── data-SKILL.md.j2         # Data pipeline skill
+│       └── integrate-SKILL.md.j2    # Plug Mode integration guide skill
 ├── examples/                        # Domain use-case examples (7 domains)
 │   ├── healthcare/                  # Meridian Health Network
 │   ├── finance/                     # RiskView portfolio dashboard
@@ -323,7 +330,8 @@ ignition/
 │   ├── test_cli.py                  # CLI command tests
 │   ├── test_examples.py             # Domain example validation
 │   ├── test_discovery.py            # Discovery stage tests
-│   └── test_plug.py                 # Plug scaffold + verify tests
+│   ├── test_plug.py                 # Plug scaffold + verify tests
+│   └── test_skills.py               # Claude Skills generation tests
 ├── .github/workflows/ci.yml         # CI pipeline (lint + test)
 ├── pyproject.toml                   # Package metadata & tool config
 ├── requirements.txt                 # Runtime dependencies
@@ -376,8 +384,9 @@ flowchart LR
     M -->|scaffold| E[🏗️ Scaffold]
     M -->|plug| P[🔎 Discovery]
     P --> Q[🔌 Plug Scaffold]
-    E --> F[🔄 Ralph Loop ×20]
-    Q --> F
+    E --> S[🧠 Claude Skills]
+    Q --> S
+    S --> F[🔄 Ralph Loop ×20]
     F --> G{✅ Verify}
     G -->|pass| H[🚀 Production]
     G -->|fail| F

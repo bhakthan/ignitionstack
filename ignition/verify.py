@@ -61,6 +61,17 @@ def verify_output(
     if not (work_dir / ".github" / "workflows" / "ci-cd.yml").exists():
         issues.append("Missing: .github/workflows/ci-cd.yml")
 
+    # Check Claude Skills
+    skills_dir = work_dir / "skills"
+    if skills_dir.exists():
+        skill_mds = list(skills_dir.glob("*/SKILL.md"))
+        if len(skill_mds) < 3:
+            issues.append(
+                f"Expected at least 3 skills, found {len(skill_mds)}"
+            )
+    else:
+        issues.append("Missing: skills/ directory")
+
     # PRD validation
     if prd:
         if len(prd.tasks) < 5:
@@ -140,6 +151,25 @@ def verify_plug_output(
     # Agents
     if not (work_dir / "agents" / "agent-config.json").exists():
         issues.append("Missing: agents/agent-config.json")
+
+    # Check Claude Skills (Plug Mode should have ≥4 including integrate)
+    skills_dir = work_dir / "skills"
+    if skills_dir.exists():
+        skill_mds = list(skills_dir.glob("*/SKILL.md"))
+        if len(skill_mds) < 4:
+            issues.append(
+                f"Expected at least 4 skills (including integrate), "
+                f"found {len(skill_mds)}"
+            )
+        # Check integrate skill specifically
+        integrate_skills = [
+            p for p in skill_mds
+            if "integrate" in p.parent.name
+        ]
+        if not integrate_skills:
+            issues.append("Missing: *-integrate skill for Plug Mode")
+    else:
+        issues.append("Missing: skills/ directory")
 
     # Report
     if issues:

@@ -1,0 +1,90 @@
+---
+name: {{ project_name }}-agent
+description: >-
+  Interact with, test, and configure the {{ domain }} domain agents in the
+  {{ project_name }} project. Use when user says "test the agent", "agent config",
+  "invoke agent", "agent response", "tune the agent", "agent prompt",
+  or "{{ domain }} agent".
+{% if metadata_author %}
+metadata:
+  author: {{ metadata_author }}
+  version: 1.0.0
+  generator: ignitionstack
+  domain: {{ domain }}
+{% endif %}
+---
+
+# {{ project_name }} Agent Interaction
+
+## Overview
+This project uses the **Microsoft Agent Framework** with domain-specific agents
+configured in `agents/agent-config.json`.
+
+## Instructions
+
+### Step 1: Review Agent Configuration
+```bash
+cat {{ work_dir_name }}/agents/agent-config.json
+```
+The config defines:
+- **Agent roles** — specialized agents for {{ domain }} tasks
+- **Orchestration** — router pattern with max 3 concurrent agents
+- **Memory** — conversation history (8192 token window)
+- **Tools** — AI Search, file system, code interpreter
+
+### Step 2: Test an Agent
+Send a test message to the primary agent:
+```python
+import json
+from pathlib import Path
+
+config = json.loads(Path("agents/agent-config.json").read_text())
+primary = config["agents"][0]
+print(f"Agent: {primary['name']}")
+print(f"Role: {primary['description']}")
+print(f"Instructions: {primary['instructions'][:200]}...")
+```
+
+### Step 3: Customize Agent Instructions
+Edit `agents/agent-config.json` to refine:
+- `instructions` — the system prompt for each agent
+- `tools` — enable/disable specific capabilities
+- `orchestration.pattern` — switch between "router", "sequential", "parallel"
+
+### Step 4: Add a New Agent
+Add a new entry to the `agents` array:
+```json
+{
+  "name": "your-agent-name",
+  "description": "What this agent does",
+  "type": "assistant",
+  "instructions": "Detailed system prompt...",
+  "model": "{{ model }}"
+}
+```
+
+## Examples
+
+### Example 1: Check agent health
+User says: "Are my agents configured correctly?"
+Actions:
+1. Read `agents/agent-config.json`
+2. Validate schema and required fields
+3. Report any missing instructions or invalid tool references
+
+### Example 2: Modify agent behavior
+User says: "Make the agent more conservative in its responses"
+Actions:
+1. Read current `instructions` field
+2. Add guardrails: "Always cite sources. Flag uncertainty explicitly."
+3. Update the config file
+
+## Troubleshooting
+
+### Error: Agent returns generic responses
+Cause: Instructions are too vague.
+Solution: Add domain-specific context and examples to the `instructions` field.
+
+### Error: Agent can't access tools
+Cause: Tool not enabled in config.
+Solution: Set `"enabled": true` for the relevant tool in the `tools` array.

@@ -183,8 +183,43 @@ STAGE_INFO: dict[str, dict[str, Any]] = {
         "after": "Ralph loop scripts generated and ready to run.",
         "key_files": ["ralph.sh", "ralph.ps1"],
     },
+    "skills": {
+        "title": "Stage 7 — Claude Skills",
+        "before": (
+            "Now we generate Claude Skills — folders that teach Claude \n"
+            "how to work with your scaffolded project.\n\n"
+            "Following the Anthropic Skills spec, each skill is a folder \n"
+            "containing a SKILL.md with YAML frontmatter + instructions:\n\n"
+            "  • [bold]{project}-ops[/bold] — Deploy, run, debug, \n"
+            "    troubleshoot the generated stack\n"
+            "  • [bold]{project}-agent[/bold] — Interact with, test, \n"
+            "    and customize the AI agents\n"
+            "  • [bold]{project}-data[/bold] — Manage data pipelines, \n"
+            "    migrations, and RAG indexing\n"
+            "  • [bold]{project}-integrate[/bold] (Plug Mode only) — \n"
+            "    Mount middleware, wire RAG, merge CI/CD\n\n"
+            "Skills use progressive disclosure: frontmatter gives intent, \n"
+            "the body gives step-by-step instructions."
+        ),
+        "after": "Claude Skills generated in skills/ directory.",
+        "key_files": [
+            "skills/README.md",
+            "skills/{project}-ops/SKILL.md",
+            "skills/{project}-agent/SKILL.md",
+            "skills/{project}-data/SKILL.md",
+        ],
+        "quiz": {
+            "question": "What is the REQUIRED file in every Claude Skill folder?",
+            "options": [
+                "README.md",
+                "SKILL.md",
+                "skill.json",
+            ],
+            "answer": 1,
+        },
+    },
     "verify": {
-        "title": "Stage 7 — Verification",
+        "title": "Stage 8 — Verification",
         "before": (
             "Final step: we verify the scaffolded output is structurally correct.\n\n"
             "Checks include:\n"

@@ -29,6 +29,11 @@ class TestVerifyOutput:
         (tmp_path / ".github" / "workflows").mkdir(parents=True)
         (tmp_path / ".github" / "workflows" / "ci-cd.yml").write_text("name: CI")
 
+        # Skills (need at least 3 SKILL.md files)
+        for s in ("test-project-ops", "test-project-agent", "test-project-data"):
+            (tmp_path / "skills" / s).mkdir(parents=True)
+            (tmp_path / "skills" / s / "SKILL.md").write_text("---\nname: test\n---")
+
         issues = verify_output(tmp_path)
         assert issues == []
 
@@ -47,6 +52,11 @@ class TestVerifyOutput:
         (tmp_path / "app" / "backend" / "main.py").write_text("")
         (tmp_path / ".github" / "workflows").mkdir(parents=True)
         (tmp_path / ".github" / "workflows" / "ci-cd.yml").write_text("")
+
+        # Skills (need at least 3 SKILL.md files)
+        for s in ("test-project-ops", "test-project-agent", "test-project-data"):
+            (tmp_path / "skills" / s).mkdir(parents=True)
+            (tmp_path / "skills" / s / "SKILL.md").write_text("---\nname: test\n---")
 
         issues = verify_output(tmp_path)
         assert issues == []

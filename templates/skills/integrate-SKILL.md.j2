@@ -1,0 +1,137 @@
+---
+name: {{ project_name }}-integrate
+description: >-
+  Guide integration of IgnitionStack plug artifacts into the existing
+  {{ project_name }} project. Use when user says "integrate", "merge plug",
+  "apply adapters", "connect agent middleware", "apply migration",
+  "merge CI/CD steps", or "plug into my project".
+{% if metadata_author %}
+metadata:
+  author: {{ metadata_author }}
+  version: 1.0.0
+  generator: ignitionstack
+  detected-stack: "{{ language }}/{{ framework }}"
+{% endif %}
+---
+
+# {{ project_name }} Integration Guide
+
+## Overview
+IgnitionStack discovered your existing stack:
+- **Language**: {{ language }}
+- **Framework**: {{ framework }}
+{% if database %}- **Database**: {{ database }}{% endif %}
+{% if auth %}- **Auth**: {{ auth }}{% endif %}
+{% if deployment %}- **Deployment**: {{ deployment }}{% endif %}
+{% if cicd %}- **CI/CD**: {{ cicd }}{% endif %}
+
+All plug artifacts are in `{{ plug_dir }}/` — nothing in your existing project
+was modified. Follow these steps to integrate.
+
+## Instructions
+
+### Step 1: Mount Agent Middleware
+Copy the adapter into your existing app:
+```bash
+cp {{ plug_dir }}/adapters/agent_middleware.py {{ target_path }}/
+```
+
+{% if framework == "fastapi" %}
+Then in your FastAPI `main.py`:
+```python
+from agent_middleware import create_agent_router
+app.include_router(create_agent_router(), prefix="/api/v1/agent")
+```
+{% elif framework == "express" %}
+Then in your Express `app.js`:
+```javascript
+const agentRoutes = require('./agent_middleware');
+app.use('/api/v1/agent', agentRoutes);
+```
+{% elif framework == "aspnet" %}
+Then in your `Program.cs`:
+```csharp
+app.MapGroup("/api/v1/agent").MapAgentEndpoints();
+```
+{% else %}
+Mount the agent endpoints at `/api/v1/agent` in your application.
+{% endif %}
+
+### Step 2: Add RAG Connector
+```bash
+cp {{ plug_dir }}/adapters/rag_connector.py {{ target_path }}/
+```
+The connector provides `index()`, `search()`, and `hybrid_search()` methods
+for Azure AI Search integration.
+
+### Step 3: Apply Database Migration
+```bash
+{% if database == "postgresql" %}
+psql -U your_user -d your_db -f {{ plug_dir }}/db-delta/001_agent_state.sql
+{% elif database == "mongodb" %}
+# Apply the schema as a MongoDB migration
+mongosh your_db < {{ plug_dir }}/db-delta/001_agent_state.sql
+{% else %}
+# Run the migration against your database
+cat {{ plug_dir }}/db-delta/001_agent_state.sql
+# Apply using your preferred migration tool
+{% endif %}
+```
+
+### Step 4: Deploy Infrastructure Delta
+{% if local_mode %}
+Merge the Docker override:
+```bash
+docker compose -f docker-compose.yml \
+  -f {{ plug_dir }}/infra-delta/docker-compose.override.yml up -d
+```
+{% else %}
+Deploy the incremental Bicep:
+```bash
+az deployment group create \
+  --resource-group {{ project_name }}-rg \
+  --template-file {{ plug_dir }}/infra-delta/delta.bicep
+```
+{% endif %}
+
+### Step 5: Merge CI/CD Steps
+Copy the AI steps into your existing pipeline:
+```bash
+cat {{ plug_dir }}/cicd-patch/ai-steps.yml
+```
+Paste the steps into your existing workflow file after the build stage.
+
+### Step 6: Configure Agents
+```bash
+cp -r {{ plug_dir }}/agents/ {{ target_path }}/agents/
+```
+Review `agents/agent-config.json` and adjust for your environment.
+
+## Verification
+After integration, verify everything works:
+```bash
+# Health check the agent endpoint
+curl http://localhost:8000/api/v1/agent/health
+
+# Test a simple agent query
+curl -X POST http://localhost:8000/api/v1/agent/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello, are you configured correctly?"}'
+```
+
+## Troubleshooting
+
+### Error: Import not found after copying adapter
+Cause: Missing dependencies.
+Solution: Install agent dependencies:
+```bash
+pip install openai azure-search-documents azure-identity
+```
+
+### Error: Migration conflicts with existing tables
+Cause: Table names clash with your schema.
+Solution: Review `001_agent_state.sql` and rename tables with a prefix.
+
+### Error: Docker override port conflicts
+Cause: AI sidecar ports overlap with existing services.
+Solution: Edit port mappings in `docker-compose.override.yml`.

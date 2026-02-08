@@ -1,0 +1,89 @@
+---
+name: {{ project_name }}-ops
+description: >-
+  Deploy, run, and debug the {{ project_name }} project scaffolded by IgnitionStack.
+  Use when user says "deploy", "run locally", "health check", "debug",
+  "start the app", "bring up services", "check status", or "troubleshoot".
+{% if metadata_author %}
+metadata:
+  author: {{ metadata_author }}
+  version: 1.0.0
+  generator: ignitionstack
+{% endif %}
+---
+
+# {{ project_name }} Operations
+
+## Instructions
+
+### Step 1: Local Development
+{% if local_mode %}
+Start the Docker Compose stack:
+```bash
+cd {{ work_dir_name }}
+docker compose up -d
+```
+Expected: All containers healthy within 60 seconds.
+{% else %}
+Deploy to Azure using Bicep:
+```bash
+cd {{ work_dir_name }}
+az deployment sub create \
+  --location {{ region }} \
+  --template-file infra/main.bicep \
+  --parameters projectName={{ project_name }}
+```
+For local development instead:
+```bash
+cd {{ work_dir_name }}
+docker compose up -d  # if docker-compose.yml was generated with --local
+```
+{% endif %}
+
+### Step 2: Run the Ralph Loop
+The Ralph loop iterates {{ iterations }} times, implementing PRD tasks:
+```bash
+cd {{ work_dir_name }}
+bash ralph.sh        # Linux/macOS
+# or
+.\ralph.ps1          # Windows
+```
+Each iteration: reads progress.txt → picks next task → implements → commits.
+
+### Step 3: Health Checks
+```bash
+# Backend API
+curl http://localhost:8000/health
+
+# Check container status
+docker compose ps
+```
+
+### Step 4: Verify Output
+```bash
+ignition verify {{ work_dir_name }}
+```
+Checks: PRD.json, progress.txt, infra/, agents/, db/, app/, CI/CD.
+
+## Troubleshooting
+
+### Error: Container fails to start
+Cause: Port conflict or missing environment variables.
+Solution:
+1. Check `docker compose logs <service>`
+2. Verify `.env` file has required keys
+3. Ensure ports 8000, 5432 are free
+
+### Error: Bicep deployment fails
+Cause: Missing Azure subscription or quota limits.
+Solution:
+1. Verify `az account show` returns a valid subscription
+2. Check quota: `az vm list-usage --location {{ region }}`
+3. Review deployment: `az deployment sub show --name {{ project_name }}`
+
+### Error: Ralph loop stalls
+Cause: LLM API key expired or rate-limited.
+Solution:
+1. Check `OPENAI_API_KEY` in `.env`
+2. Review `progress.txt` for the last completed task
+3. Restart: `bash ralph.sh` (it resumes from last checkpoint)

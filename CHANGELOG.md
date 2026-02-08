@@ -6,7 +6,11 @@ All notable changes to IgnitionStack will be documented in this file.
 
 ### Added
 - Initial release of IgnitionStack CLI
-- 7-stage pipeline: Input → Parse → Decompose → PRD → Scaffold → Ralph → Production
+- 7-stage pipeline: Input → Parse → Decompose → PRD → Scaffold → Claude Skills → Ralph → Production
+- **Claude Skills** generation following [Anthropic Agent Skills](https://docs.anthropic.com/en/docs/agents-and-tools/skills) spec
+  - 4 skills: ops (deploy/run/debug), agent (AI interaction), data (pipelines/RAG), integrate (Plug Mode)
+  - SKILL.md files with YAML frontmatter, progressive disclosure, kebab-case folder naming
+  - Tutorial panel with quiz checkpoint, verification checks in both scaffold and plug modes
 - **Plug Mode** (`--plug <path>`) — enhance existing projects with AI agents
   - Discovery stage: auto-detects language, framework, DB, auth, deployment, CI/CD, API endpoints
   - Generates adapters, infra-delta (Bicep/Docker), db-delta, cicd-patch, agent config
@@ -21,4 +25,4 @@ All notable changes to IgnitionStack will be documented in this file.
 - CI/CD workflow generation (GitHub Actions)
 - Multi-format input support: .txt, .md, .pdf, .pptx, .docx, .png, .jpg
 - CLI commands: `run`, `verify`, `example`, `version`
-- 103 tests with full lint coverage (ruff)
+- 124 tests with full lint coverage (ruff)

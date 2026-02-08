@@ -1,0 +1,97 @@
+---
+name: {{ project_name }}-data
+description: >-
+  Manage the {{ project_name }} data pipeline — migrations, seed data,
+  RAG indexing, and search. Use when user says "run migration", "seed data",
+  "index documents", "search", "database schema", "RAG pipeline",
+  or "data setup".
+{% if metadata_author %}
+metadata:
+  author: {{ metadata_author }}
+  version: 1.0.0
+  generator: ignitionstack
+{% endif %}
+---
+
+# {{ project_name }} Data Pipeline
+
+## Instructions
+
+### Step 1: Run Database Migrations
+```bash
+cd {{ work_dir_name }}
+{% if local_mode %}
+# Local: PostgreSQL in Docker
+docker compose exec db psql -U postgres -d {{ db_name }} \
+  -f /docker-entrypoint-initdb.d/001_initial.sql
+{% else %}
+# Azure: run against Cosmos DB / PostgreSQL
+az postgres flexible-server execute \
+  --name {{ project_name }}-db \
+  --admin-password $DB_PASSWORD \
+  --file-path db/migrations/001_initial.sql
+{% endif %}
+```
+
+### Step 2: Seed Data
+The seed data in `db/migrations/001_initial.sql` includes:
+- Table definitions with proper constraints
+- Initial reference data for {{ domain }} domain
+- Indexes for common query patterns
+
+Review before applying:
+```bash
+cat {{ work_dir_name }}/db/migrations/001_initial.sql
+```
+
+### Step 3: RAG Indexing (if AI Search enabled)
+```bash
+# Index documents for retrieval-augmented generation
+cd {{ work_dir_name }}
+python -c "
+from app.backend.main import app
+# Trigger indexing endpoint
+import httpx
+r = httpx.post('http://localhost:8000/api/v1/index')
+print(r.json())
+"
+```
+
+### Step 4: Verify Data
+```bash
+# Check tables exist
+{% if local_mode %}
+docker compose exec db psql -U postgres -d {{ db_name }} -c '\dt'
+{% else %}
+az postgres flexible-server execute \
+  --name {{ project_name }}-db \
+  --admin-password $DB_PASSWORD \
+  --querytext "SELECT table_name FROM information_schema.tables WHERE table_schema='public';"
+{% endif %}
+```
+
+## Examples
+
+### Example 1: Add a new migration
+User says: "Add a users table"
+Actions:
+1. Create `db/migrations/002_users.sql`
+2. Define table with proper types and constraints
+3. Add to migration sequence
+
+### Example 2: Debug missing data
+User says: "The API returns empty results"
+Actions:
+1. Check if migrations ran: verify tables exist
+2. Check if seed data was applied: count rows
+3. Check API query: review the SQL in the backend route
+
+## Troubleshooting
+
+### Error: Migration fails with "relation already exists"
+Cause: Migration was already applied.
+Solution: Use `IF NOT EXISTS` in CREATE statements, or reset the DB.
+
+### Error: Search returns no results
+Cause: Documents not indexed yet.
+Solution: Run the RAG indexing step above, then retry.

@@ -28,6 +28,7 @@ from ignition.stages.scaffold.database import scaffold_database
 from ignition.stages.scaffold.github import scaffold_github
 from ignition.stages.scaffold.plug import scaffold_plug
 from ignition.stages.scaffold.ralph import scaffold_ralph
+from ignition.stages.scaffold.skills import scaffold_skills
 
 console = Console()
 
@@ -214,6 +215,11 @@ class IgnitionStackAgent:
         # Agents config (tuned to existing service)
         all_files.extend(scaffold_agents(prd, config))
 
+        # Claude Skills (including integrate skill for Plug Mode)
+        all_files.extend(
+            scaffold_skills(prd, config, discovery=discovery_result),
+        )
+
         # Ralph scripts (scoped to plug dir)
         all_files.extend(scaffold_ralph(prd, config))
 
@@ -351,6 +357,9 @@ class IgnitionStackAgent:
         all_files.extend(scaffold_app(prd, config))
         all_files.extend(scaffold_cicd(prd, config))
         all_files.extend(scaffold_ralph(prd, config))
+
+        # Claude Skills (ops, agent, data)
+        all_files.extend(scaffold_skills(prd, config))
 
         # GitHub init (git + optional remote)
         try:

@@ -148,12 +148,14 @@ class TestVerifyPlug:
     def test_passes_with_all_files(self, plug_prd, plug_discovery, plug_config):
         from ignition.stages.scaffold.agents import scaffold_agents
         from ignition.stages.scaffold.ralph import scaffold_ralph
+        from ignition.stages.scaffold.skills import scaffold_skills
 
         work = plug_config.work_dir
         # Generate plug artifacts
         scaffold_plug(plug_prd, plug_discovery, plug_config)
         scaffold_agents(plug_prd, plug_config)
         scaffold_ralph(plug_prd, plug_config)
+        scaffold_skills(plug_prd, plug_config, discovery=plug_discovery)
 
         # Also need PRD.json, progress.txt, discovery.json
         from ignition.stages.discovery import save_discovery
