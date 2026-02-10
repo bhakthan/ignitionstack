@@ -147,6 +147,26 @@ Then you run `ralph.sh` — it iterates 20 times, each time reading the PRD, pic
 | 9 | **Verify** | Validates output structure |
 | 10 | **Reflection** | Sprint retrospective: extracts patterns (success + anti-pattern), generates feed-forward context for next sprint, updates metrics. |
 
+#### Recursive Self-Improvement Loop
+
+Each sprint's learnings persist and feed forward into the next sprint — planning gets sharper, reviews catch known anti-patterns, and the system genuinely compounds.
+
+```mermaid
+graph TD
+    A["Sprint N: Scaffold + Review"] --> B["Stage 10: Reflection"]
+    B --> C["end_sprint — records retro,\nupdates pattern library,\nrecords planning + debt trends"]
+    C --> D["Persist to\n.ignition/compound-state.json"]
+    D --> E["Writes feed-forward.md"]
+    E --> F["Sprint N+1 starts"]
+    F --> G["Load persisted state"]
+    G --> H["begin_sprint — builds\nfeed-forward dict from last retro"]
+    H --> I["Stage 5: Planning Gate\ninjects feed-forward into LLM prompt"]
+    I --> J["Stage 8: Review Gate\ninjects anti-patterns from library"]
+    J --> A
+```
+
+> **What compounds:** pattern library (success + anti-patterns), planning quality scores, technical debt ledger, process improvements, and knowledge gaps — all carry forward automatically.
+
 ---
 
 ## The Decomposition Test
