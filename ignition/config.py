@@ -49,19 +49,6 @@ class IgnitionConfig(BaseModel):
     verbose: bool = False
     plug_target: Path | None = None  # existing project to enhance (Plug Mode)
 
-    # Compound Engineering settings
-    compound_mode: bool = False  # enable compound engineering features
-    planning_threshold: float = Field(
-        default_factory=lambda: float(_env("IGNITION_PLANNING_THRESHOLD", "70.0"))
-    )
-    review_threshold: float = Field(
-        default_factory=lambda: float(_env("IGNITION_REVIEW_THRESHOLD", "70.0"))
-    )
-    debt_threshold: float = Field(
-        default_factory=lambda: float(_env("IGNITION_DEBT_THRESHOLD", "10.0"))
-    )
-    compound_data_dir: Path | None = None  # persistent compound data location
-
     @property
     def has_foundry(self) -> bool:
         """True when Azure AI Foundry credentials are configured."""
@@ -79,18 +66,7 @@ class IgnitionConfig(BaseModel):
     def is_plug_mode(self) -> bool:
         return self.plug_target is not None
 
-    @property
-    def is_compound_mode(self) -> bool:
-        return self.compound_mode
-
     def ensure_work_dir(self) -> Path:
         """Create and return the work directory."""
         self.work_dir.mkdir(parents=True, exist_ok=True)
         return self.work_dir
-
-    def ensure_compound_dir(self) -> Path:
-        """Create and return the compound data directory."""
-        if self.compound_data_dir is None:
-            self.compound_data_dir = self.work_dir / ".compound"
-        self.compound_data_dir.mkdir(parents=True, exist_ok=True)
-        return self.compound_data_dir
