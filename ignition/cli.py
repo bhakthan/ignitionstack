@@ -34,6 +34,7 @@ def main():
     type=click.Path(exists=True, file_okay=False, path_type=Path),
     help="Existing project to enhance (Plug Mode)",
 )
+@click.option("--compound", is_flag=True, help="Enable compound engineering (plan→review→compound)")
 @click.option("--tutorial", is_flag=True, help="Step-by-step guided mode")
 @click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 def run(
@@ -45,6 +46,7 @@ def run(
     work_dir: Path | None,
     local: bool,
     plug: Path | None,
+    compound: bool,
     tutorial: bool,
     verbose: bool,
 ):
@@ -55,6 +57,7 @@ def run(
         iterations=iterations,
         local_mode=local,
         plug_target=plug,
+        compound_mode=compound,
         tutorial_mode=tutorial,
         verbose=verbose,
     )

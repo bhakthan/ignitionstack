@@ -6,13 +6,18 @@
 
 ![IgnitionStack — From Use Case to Production Azure Workload](public/images/IgnitionStack_Explained.png)
 
+![IgnitionStack — Compound Engineering & Recursive Self-Improvement](public/images/IgnitionStack_Compound_Self_Improvement.png)
+
 **Input:** Screenshot, text, PDF, PPTX, or Word doc describing a use case
 **Output:** Fully deployed Azure project — Bicep infra, Microsoft Foundry agents, database, app code, GitHub repo, CI/CD pipeline
 **Engine:** 20 Ralph-loop iterations using your chosen model via `gh copilot`
 
 ```
-📄 Input → 🔍 Parse → 🧩 Decompose → 📋 PRD.json → 🏗️ Scaffold → 🧠 Claude Skills → 🔄 Ralph ×20 → 🚀 Production
+📄 Input → 🔍 Parse → 🧩 Decompose → 📋 PRD.json → 📊 Plan Gate → 🏗️ Scaffold → 🔄 Ralph ×20 → 🔍 Review Gate → ✅ Verify → 🧠 Reflect → 🚀 Production
 ```
+
+> **Compound Engineering:** Add `--compound` to enable the 4-step learning loop (Plan → Work → Review → Compound).
+> Each sprint makes the next one easier — not harder. [Learn the concept →](https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents)
 
 ---
 
@@ -43,7 +48,8 @@
 | Agent Framework | Microsoft Agent Framework | Domain-specific agent configuration |
 | App Scaffold | FastAPI + React (Vite) | Generated backend and frontend stubs |
 | CI/CD | GitHub Actions | Build → Test → Deploy workflow |
-| Testing | pytest + ruff | Unit tests (124) and linting |
+| Compound Engineering | Custom (plan, review, reflect) | Recursive self-improvement across sprints |
+| Testing | pytest + ruff | Unit tests (165) and linting |
 | Containerization | Docker | Reproducible builds and local mode |
 
 ---
@@ -80,6 +86,13 @@ ignition-output/
 ├── progress.txt                # Agent's external memory / iteration diary
 ├── ralph.sh                    # The core bash loop (20 iterations)
 ├── ralph.ps1                   # PowerShell equivalent for Windows
+├── planning-report.json        # Planning quality scores (--compound)
+├── compound-metrics.md         # Self-improvement dashboard (--compound)
+├── .ignition/                  # Compound engineering state (--compound)
+│   ├── compound-state.json     # Persistent state across sprints
+│   ├── feed-forward.md         # Context injected into next sprint
+│   ├── reviews/                # Per-iteration review reports
+│   └── retrospectives/         # Per-sprint retrospective analysis
 ├── infra/
 │   ├── main.bicep              # Subscription-scoped orchestrator
 │   └── modules/
@@ -108,7 +121,9 @@ Then you run `ralph.sh` — it iterates 20 times, each time reading the PRD, pic
 
 ---
 
-## The 8 Pipeline Stages
+## Pipeline Stages
+
+### Standard Mode (7 stages)
 
 | # | Stage | What happens |
 |---|-------|-------------|
@@ -117,9 +132,20 @@ Then you run `ralph.sh` — it iterates 20 times, each time reading the PRD, pic
 | 3 | **Decompose** | Breaks requirements into 30-50 atomic tasks (Decomposition Test) |
 | 4 | **PRD.json** | Produces the prioritized task backlog + initializes progress.txt |
 | 5 | **Scaffold** | Generates Bicep infra, Foundry agents, DB schema, app code, CI/CD |
-| 6 | **Claude Skills** | Generates SKILL.md folders per Anthropic spec (ops, agent, data, integrate) |
-| 7 | **Ralph ×20** | Executes 20 iterations: read PRD → implement → test → commit |
-| 8 | **Production** | Deployed Azure workload + GitHub repo + documentation |
+| 6 | **Ralph ×20** | Executes 20 iterations: read PRD → implement → test → commit |
+| 7 | **Verify** | Validates generated output structure and completeness |
+
+### Compound Mode (10 stages — `--compound`)
+
+| # | Stage | What happens |
+|---|-------|-------------|
+| 1–4 | Standard | Input → Parse → Decompose → PRD (same as above) |
+| 5 | **Planning Gate** | Validates plan quality across 5 dimensions (completeness, clarity, testability, scope, dependencies). Enriches weak tasks with suggestions and definition of done. |
+| 6 | **Scaffold** | Generates project + compound-aware Ralph scripts |
+| 7 | **Ralph ×20** | Each iteration: plan → implement → review → learn |
+| 8 | **Review Gate** | Catches technical debt, coupling issues, alignment gaps. Tracks findings in debt ledger. |
+| 9 | **Verify** | Validates output structure |
+| 10 | **Reflection** | Sprint retrospective: extracts patterns (success + anti-pattern), generates feed-forward context for next sprint, updates metrics. |
 
 ---
 
@@ -170,6 +196,52 @@ Add `--tutorial` to any `ignition run` command for a guided learning experience:
 ```bash
 ignition run examples/education/use-case.txt --project learntrack --tutorial
 ```
+
+---
+
+## Compound Engineering Mode
+
+Add `--compound` to enable the recursive self-improvement loop:
+
+```bash
+# First sprint
+ignition run examples/healthcare/use-case.txt --project meridian --compound
+
+# Second sprint (loads learnings from first sprint automatically)
+ignition run examples/healthcare/use-case.txt --project meridian --compound
+```
+
+Compound engineering inverts the traditional 80/20 — 80% of effort goes to **planning and review**, 20% to execution:
+
+| Step | What happens | Effort |
+|------|-------------|--------|
+| **Plan** | LLM validates each task's plan quality (5 dimensions, 0–100 score). Weak tasks get enriched with suggestions and definition of done. | 40% |
+| **Work** | Ralph loop executes — read PRD, implement, test, commit. | 20% |
+| **Review** | Review gate catches technical debt, coupling, missing tests. Findings tracked in debt ledger. | 20% |
+| **Compound** | Sprint reflection: extract patterns, flag anti-patterns, generate feed-forward context for next sprint. | 20% |
+
+### Recursive Self-Improvement
+
+Learnings persist in `.ignition/compound-state.json` across sprints:
+
+```
+Sprint 1: Plan → Work → Review → Reflect
+                                    │
+                    patterns, anti-patterns, improvements
+                                    ↓
+Sprint 2: Plan (with feed-forward) → Work → Review → Reflect
+                                                        │
+                                        patterns grow, debt shrinks
+                                                        ↓
+Sprint 3: Plan (stronger context) → Work → Review → Reflect ...
+```
+
+Track progress with the generated `compound-metrics.md` dashboard:
+- **Planning quality trend** (should increase)
+- **Technical debt trend** (should decrease)
+- **Review gate pass rate** (should increase)
+- **Pattern library growth** (monotonic — knowledge compounds)
+- **Self-improvement score** (0–100 composite)
 
 ---
 
@@ -271,7 +343,9 @@ ignition/
 │   ├── config.py                    # IgnitionConfig (Pydantic) — env + CLI flags
 │   ├── llm.py                       # OpenAI SDK wrapper — chat(), chat_json()
 │   ├── models.py                    # Task, PRD, ParsedRequirements, DiscoveryResult
-│   ├── runner.py                    # IgnitionStackAgent — 8-stage orchestrator
+│   ├── compound.py                  # Compound engineering models (state, patterns, debt)
+│   ├── metrics.py                   # Compound engineering metrics & reporting
+│   ├── runner.py                    # IgnitionStackAgent — 7/10-stage orchestrator
 │   ├── verify.py                    # Post-generation output validation (scaffold + plug)
 │   ├── tutorial.py                  # Rich tutorial panels, quizzes, scoring
 │   └── stages/                      # Pipeline stage implementations
@@ -280,6 +354,9 @@ ignition/
 │       ├── parser.py                # Stage 2 — text extraction + LLM parsing
 │       ├── decomposer.py            # Stage 3 — requirement → atomic T/B/I/C tasks
 │       ├── prd.py                   # Stage 4 — PRD generation & progress init
+│       ├── planning.py              # Stage 5 (Compound) — planning quality gate
+│       ├── review.py                # Stage 8 (Compound) — review gate & debt tracking
+│       ├── reflection.py            # Stage 10 (Compound) — sprint retrospective
 │       ├── discovery.py             # Stage 0 (Plug Mode) — existing project scan
 │       └── scaffold/                # Stage 5 — project generation
 │           ├── __init__.py
@@ -333,7 +410,12 @@ ignition/
 │   ├── test_examples.py             # Domain example validation
 │   ├── test_discovery.py            # Discovery stage tests
 │   ├── test_plug.py                 # Plug scaffold + verify tests
-│   └── test_skills.py               # Claude Skills generation tests
+│   ├── test_skills.py               # Claude Skills generation tests
+│   ├── test_compound.py             # Compound engineering model tests
+│   ├── test_planning.py             # Planning quality gate tests
+│   ├── test_review.py               # Review gate tests
+│   ├── test_reflection.py           # Reflection stage tests
+│   └── test_metrics.py              # Compound metrics tests
 ├── .github/workflows/ci.yml         # CI pipeline (lint + test)
 ├── pyproject.toml                   # Package metadata & tool config
 ├── requirements.txt                 # Runtime dependencies
@@ -360,6 +442,7 @@ Options:
   --work-dir PATH     Output directory (default: ./ignition-output)
   --local             Generate Docker Compose instead of Bicep
   --plug PATH         Existing project directory to enhance (Plug Mode)
+  --compound          Enable compound engineering (plan → review → compound)
   --tutorial          Step-by-step guided mode with explanations
   --verbose           Show detailed LLM prompts and responses
 
@@ -383,15 +466,24 @@ flowchart LR
     B --> C[🧩 Decomposer]
     C --> D[📋 PRD Generator]
     D --> M{Mode?}
-    M -->|scaffold| E[🏗️ Scaffold]
+    M -->|scaffold| PL{Compound?}
     M -->|plug| P[🔎 Discovery]
     P --> Q[🔌 Plug Scaffold]
-    E --> S[🧠 Claude Skills]
-    Q --> S
-    S --> F[🔄 Ralph Loop ×20]
-    F --> G{✅ Verify}
-    G -->|pass| H[🚀 Production]
+    PL -->|yes| PG[📊 Planning Gate]
+    PL -->|no| E[🏗️ Scaffold]
+    PG --> E
+    Q --> E
+    E --> F[🔄 Ralph Loop ×20]
+    F --> RV{Compound?}
+    RV -->|yes| RG[🔍 Review Gate]
+    RV -->|no| G
+    RG --> G{✅ Verify}
+    G -->|pass| RF{Compound?}
     G -->|fail| F
+    RF -->|yes| RE[🧠 Reflection]
+    RF -->|no| H[🚀 Production]
+    RE --> H
+    RE -.->|feed-forward| PG
 ```
 
 ---

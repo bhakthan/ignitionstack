@@ -45,6 +45,7 @@ class IgnitionConfig(BaseModel):
     )
     local_mode: bool = False
     tutorial_mode: bool = False
+    compound_mode: bool = False  # compound engineering (plan → review → compound)
     verbose: bool = False
     plug_target: Path | None = None  # existing project to enhance (Plug Mode)
 

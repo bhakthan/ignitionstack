@@ -8,7 +8,9 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
+from ignition.compound import CompoundState
 from ignition.config import IgnitionConfig
+from ignition.metrics import generate_metrics_report, save_metrics_report
 from ignition.models import (
     PRD,
     IterationResult,
@@ -19,7 +21,22 @@ from ignition.stages.decomposer import decompose
 from ignition.stages.discovery import discover, save_discovery
 from ignition.stages.input import validate_input
 from ignition.stages.parser import parse
+from ignition.stages.planning import (
+    enrich_tasks_from_planning,
+    save_planning_report,
+    validate_planning,
+)
 from ignition.stages.prd import generate_prd, init_progress, save_prd
+from ignition.stages.reflection import (
+    generate_feed_forward_prompt,
+    reflect_on_sprint,
+    save_retrospective,
+)
+from ignition.stages.review import (
+    apply_review_to_state,
+    review_iteration,
+    save_review_report,
+)
 from ignition.stages.scaffold.agents import scaffold_agents
 from ignition.stages.scaffold.app import scaffold_app
 from ignition.stages.scaffold.bicep import scaffold_infra
@@ -43,9 +60,24 @@ class IgnitionStackAgent:
     def __init__(self, config: IgnitionConfig):
         self.config = config
         self.tutorial: object | None = None  # set if tutorial mode
+        self.compound_state: CompoundState | None = None  # set if compound mode
 
     def run(self, input_path: Path) -> Path:
         """Execute the full pipeline and return the work directory."""
+        # Initialize compound engineering state if enabled
+        if self.config.compound_mode:
+            work = self.config.ensure_work_dir()
+            self.compound_state = CompoundState.load(work)
+            self.compound_state.project_name = self.config.project_name
+            if self.compound_state.current_sprint > 1:
+                self.compound_state.begin_sprint()
+                console.print(
+                    f"[bold magenta]Compound Engineering — Sprint "
+                    f"{self.compound_state.current_sprint}[/bold magenta]\n"
+                    f"  Feed-forward from sprint "
+                    f"{self.compound_state.current_sprint - 1} loaded",
+                )
+
         if self.config.is_plug_mode:
             return self.run_plug(input_path)
         return self._run_scaffold(input_path)
@@ -248,13 +280,17 @@ class IgnitionStackAgent:
         """Execute the full scaffold pipeline and return the work directory."""
         config = self.config
         work = config.ensure_work_dir()
+        compound = config.compound_mode
+        total_stages = 10 if compound else 7
 
+        mode_label = "Compound" if compound else "Standard"
         console.print(
             Panel(
                 f"[bold cyan]IgnitionStack Agent[/bold cyan]\n"
                 f"Project: [bold]{config.project_name}[/bold]\n"
                 f"Model: {config.model}\n"
                 f"Mode: {'Local (Docker)' if config.local_mode else 'Azure'}\n"
+                f"Engineering: {mode_label}\n"
                 f"Tutorial: {'On' if config.tutorial_mode else 'Off'}",
                 title="🚀 Ignition",
                 border_style="cyan",
@@ -267,21 +303,27 @@ class IgnitionStackAgent:
             console=console,
         ) as progress:
             # Stage 1: Input
-            task = progress.add_task("Stage 1/7 — Validating input...", total=None)
+            task = progress.add_task(
+                f"Stage 1/{total_stages} — Validating input...", total=None,
+            )
             self._tutorial_before("input")
             input_type = validate_input(input_path)
             self._tutorial_after("input")
             progress.update(task, completed=True)
 
             # Stage 2: Parse
-            task = progress.add_task("Stage 2/7 — Parsing requirements...", total=None)
+            task = progress.add_task(
+                f"Stage 2/{total_stages} — Parsing requirements...", total=None,
+            )
             self._tutorial_before("parse")
             requirements = parse(input_path, input_type, config)
             self._tutorial_after("parse", extra=f"Found {len(requirements.features)} features")
             progress.update(task, completed=True)
 
             # Stage 3: Decompose
-            task = progress.add_task("Stage 3/7 — Decomposing into tasks...", total=None)
+            task = progress.add_task(
+                f"Stage 3/{total_stages} — Decomposing into tasks...", total=None,
+            )
             self._tutorial_before("decompose")
             tasks = decompose(requirements, config)
             self._tutorial_after(
@@ -291,7 +333,9 @@ class IgnitionStackAgent:
             progress.update(task, completed=True)
 
             # Stage 4: PRD
-            task = progress.add_task("Stage 4/7 — Building PRD...", total=None)
+            task = progress.add_task(
+                f"Stage 4/{total_stages} — Building PRD...", total=None,
+            )
             self._tutorial_before("prd")
             prd = generate_prd(config.project_name, requirements, tasks, config)
             prd_path = save_prd(prd, work)
@@ -299,8 +343,38 @@ class IgnitionStackAgent:
             self._tutorial_after("prd", extra=f"Saved {prd_path.name}")
             progress.update(task, completed=True)
 
-            # Stage 5: Scaffold
-            task = progress.add_task("Stage 5/7 — Scaffolding project...", total=None)
+            # ── Compound: Stage 4.5 — Planning Quality Gate ──
+            if compound:
+                task = progress.add_task(
+                    f"Stage 5/{total_stages} — Planning quality gate...",
+                    total=None,
+                )
+                self._tutorial_before("planning")
+                planning_report = validate_planning(
+                    prd, config, self.compound_state,
+                )
+                save_planning_report(planning_report, work)
+                if self.compound_state:
+                    self.compound_state.planning_reports.append(planning_report)
+                # Enrich low-quality tasks with suggestions
+                prd = enrich_tasks_from_planning(prd, planning_report)
+                save_prd(prd, work)  # re-save enriched PRD
+                self._tutorial_after(
+                    "planning",
+                    extra=(
+                        f"Score: {planning_report.overall_score}/100, "
+                        f"{sum(1 for a in planning_report.task_assessments if not a.passes)} "
+                        f"tasks enriched"
+                    ),
+                )
+                progress.update(task, completed=True)
+
+            # Stage 5/6: Scaffold
+            scaffold_num = 6 if compound else 5
+            task = progress.add_task(
+                f"Stage {scaffold_num}/{total_stages} — Scaffolding project...",
+                total=None,
+            )
             self._tutorial_before("scaffold")
             manifest = self._scaffold(prd)
             self._tutorial_after(
@@ -309,36 +383,80 @@ class IgnitionStackAgent:
             )
             progress.update(task, completed=True)
 
-            # Stage 6: Ralph Loop
+            # Stage 6/7: Ralph Loop
+            ralph_num = 7 if compound else 6
             task = progress.add_task(
-                f"Stage 6/7 — Ralph Loop (×{config.iterations})...",
+                f"Stage {ralph_num}/{total_stages} — Ralph Loop "
+                f"(×{config.iterations})...",
                 total=None,
             )
             self._tutorial_before("ralph")
             results = self._ralph_loop(prd, work)
             self._tutorial_after(
                 "ralph",
-                extra=f"{sum(1 for r in results if r.success)}/{len(results)} iterations succeeded",
+                extra=(
+                    f"{sum(1 for r in results if r.success)}"
+                    f"/{len(results)} iterations succeeded"
+                ),
             )
             progress.update(task, completed=True)
 
-            # Stage 7: Verify
-            task = progress.add_task("Stage 7/7 — Verifying output...", total=None)
+            # ── Compound: Stage 8 — Review Gate ──
+            if compound:
+                task = progress.add_task(
+                    f"Stage 8/{total_stages} — Review gate...", total=None,
+                )
+                self._tutorial_before("review")
+                review_summary = self._run_review_gate(prd, work)
+                self._tutorial_after("review", extra=review_summary)
+                progress.update(task, completed=True)
+
+            # Stage 7/9: Verify
+            verify_num = 9 if compound else 7
+            task = progress.add_task(
+                f"Stage {verify_num}/{total_stages} — Verifying output...",
+                total=None,
+            )
             self._tutorial_before("verify")
             self._verify(work, prd)
             self._tutorial_after("verify")
             progress.update(task, completed=True)
 
+            # ── Compound: Stage 10 — Reflection ──
+            if compound:
+                task = progress.add_task(
+                    f"Stage 10/{total_stages} — Reflection & self-improvement...",
+                    total=None,
+                )
+                self._tutorial_before("reflection")
+                retro_summary = self._run_reflection(prd, work)
+                self._tutorial_after("reflection", extra=retro_summary)
+                progress.update(task, completed=True)
+
+        # Final output
         console.print()
+        summary_parts = [
+            f"[bold green]✅ Pipeline complete![/bold green]\n\n"
+            f"Output: [bold]{work}[/bold]\n"
+            f"Tasks: {prd.progress_pct}% complete ({len(prd.tasks)} total)\n"
+            f"Files: {len(manifest.files)} generated",
+        ]
+        if compound and self.compound_state:
+            summary_parts.append(
+                f"\n\n[bold magenta]Compound Engineering[/bold magenta]\n"
+                f"  Sprint: {self.compound_state.current_sprint}\n"
+                f"  Patterns: {len(self.compound_state.pattern_library.patterns)}\n"
+                f"  Debt items: {len(self.compound_state.debt_ledger.open_items)} open\n"
+                f"  Improving: {'Yes' if self.compound_state.is_improving else 'No'}",
+            )
+        summary_parts.append(
+            f"\n\nNext steps:\n"
+            f"  cd {work}\n"
+            f"  {'bash ralph.sh' if not config.local_mode else 'docker compose up'}",
+        )
         console.print(
             Panel(
-                f"[bold green]✅ Pipeline complete![/bold green]\n\n"
-                f"Output: [bold]{work}[/bold]\n"
-                f"Tasks: {prd.progress_pct}% complete ({len(prd.tasks)} total)\n"
-                f"Files: {len(manifest.files)} generated\n\n"
-                f"Next steps:\n"
-                f"  cd {work}\n"
-                f"  {'bash ralph.sh' if not config.local_mode else 'docker compose up'}",
+                "".join(summary_parts),
                 title="🏁 Done",
                 border_style="green",
             )
@@ -388,6 +506,9 @@ class IgnitionStackAgent:
             f.write("- Scripts generated: ralph.sh, ralph.ps1\n")
             f.write(f"- Configured iterations: {self.config.iterations}\n")
             f.write(f"- Model: {self.config.model}\n")
+            if self.config.compound_mode:
+                f.write("- Compound engineering: ENABLED\n")
+                f.write("  Each iteration: plan → implement → review → learn\n")
             f.write("\nRun `bash ralph.sh` or `.\\ralph.ps1` to start the loop.\n")
 
         # Return a single "setup" result
@@ -402,6 +523,56 @@ class IgnitionStackAgent:
         )
 
         return results
+
+    def _run_review_gate(self, prd: PRD, work: Path) -> str:
+        """Run the review gate across completed tasks."""
+        if not self.compound_state:
+            return "skipped (no compound state)"
+
+        reviewed = 0
+        blockers = 0
+        for i, task in enumerate(prd.tasks[:5], 1):  # review first batch
+            report = review_iteration(
+                task, i, work, self.config, self.compound_state,
+            )
+            save_review_report(report, work)
+            apply_review_to_state(report, self.compound_state)
+            reviewed += 1
+            blockers += len(report.blockers)
+
+        self.compound_state.save(work)
+        return (
+            f"{reviewed} tasks reviewed, "
+            f"{blockers} blockers, "
+            f"debt score: {self.compound_state.debt_ledger.debt_score}"
+        )
+
+    def _run_reflection(self, prd: PRD, work: Path) -> str:
+        """Run the reflection/compound stage."""
+        if not self.compound_state:
+            return "skipped (no compound state)"
+
+        retro = reflect_on_sprint(prd, self.config, self.compound_state)
+        save_retrospective(retro, work)
+        self.compound_state.end_sprint(retro)
+        self.compound_state.save(work)
+
+        # Generate metrics report
+        save_metrics_report(self.compound_state, work)
+
+        # Write feed-forward prompt for next sprint
+        ff_prompt = generate_feed_forward_prompt(self.compound_state)
+        if ff_prompt:
+            ff_path = work / ".ignition" / "feed-forward.md"
+            ff_path.parent.mkdir(parents=True, exist_ok=True)
+            ff_path.write_text(ff_prompt, encoding="utf-8")
+
+        return (
+            f"Sprint {retro.sprint_number}: "
+            f"{retro.tasks_completed}/{retro.tasks_total} tasks, "
+            f"{len(retro.new_patterns)} new patterns, "
+            f"improving: {self.compound_state.is_improving}"
+        )
 
     def _verify(self, work: Path, prd: PRD) -> None:
         """Basic verification of generated output."""
