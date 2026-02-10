@@ -239,6 +239,78 @@ ignition-plug/
 
 ---
 
+## Compound Engineering Mode
+
+Add `--compound` to enable compound engineering practices that reduce technical debt:
+
+```bash
+ignition run examples/healthcare/use-case.txt --project meridian --compound
+```
+
+### What Compound Engineering Adds
+
+| Stage | What It Does |
+|-------|-------------|
+| **Planning Quality (4.5)** | Assesses each task for completeness, clarity, testability, scope, dependencies, and acceptance criteria. Tasks below threshold get improvement suggestions. |
+| **Review Gates (7.5)** | Runs before each commit to detect technical debt, code quality issues, and missing tests. Blocking issues prevent commits. |
+| **Reflection (8)** | After all iterations, analyzes patterns — what worked, what failed, root causes — and builds a pattern library for future runs. |
+| **Metrics Dashboard** | Generates `.compound/dashboard.html` with compound score, debt trends, and learned patterns. |
+
+### Compound Engineering Output
+
+```
+ignition-output/
+└── .compound/
+    ├── session.json              # Persistent session state
+    ├── planning_report.json      # Task quality assessments
+    ├── debt_report.json          # Technical debt inventory
+    ├── dashboard.html            # Visual metrics dashboard
+    ├── reviews/                   # Per-iteration review results
+    │   └── review_iter_N.json
+    ├── reflections/               # Per-iteration reflections
+    │   └── reflection_iter_N.json
+    └── metrics/                   # Metrics snapshots
+        └── metrics_iter_N.json
+```
+
+### Planning Quality Dimensions
+
+Each task is scored (0-100) on:
+
+- **Completeness** — All aspects defined (inputs, outputs, edge cases)
+- **Clarity** — Unambiguous description, no vague terms
+- **Testability** — Success can be objectively verified
+- **Scope** — Single responsibility, achievable in one iteration
+- **Dependencies** — All dependencies identified
+- **Acceptance** — Clear definition of done
+
+Tasks scoring below threshold (default: 70) get improvement suggestions.
+
+### Review Gate Checks
+
+Before each commit, the review gate checks:
+
+- **Code Quality** — Naming, complexity, formatting
+- **Test Coverage** — Tests for new/changed code
+- **Debt Scan** — TODOs, magic numbers, duplication
+- **Documentation** — Docstrings, comments, README
+- **Security** — Credentials, injection risks
+
+Critical issues block the commit; warnings are logged.
+
+### Self-Improvement Loop
+
+After each iteration:
+
+1. **Analyze** — What worked? What failed? Why?
+2. **Extract Patterns** — Success patterns and anti-patterns
+3. **Build Library** — Store patterns with confidence scores
+4. **Guide Future Tasks** — Inject relevant patterns into next iteration
+
+Pattern library persists across runs in `.compound/session.json`.
+
+---
+
 ## Why a Bash Loop?
 
 The Ralph Loop is intentionally simple — 30 lines of bash — because:
@@ -360,6 +432,7 @@ Options:
   --work-dir PATH     Output directory (default: ./ignition-output)
   --local             Generate Docker Compose instead of Bicep
   --plug PATH         Existing project directory to enhance (Plug Mode)
+  --compound          Enable compound engineering mode (planning quality, review gates, reflection)
   --tutorial          Step-by-step guided mode with explanations
   --verbose           Show detailed LLM prompts and responses
 

@@ -29,11 +29,11 @@ def main():
 @click.option("--iterations", default=20, type=int, help="Ralph loop iterations")
 @click.option("--work-dir", default=None, type=click.Path(path_type=Path), help="Output directory")
 @click.option("--local", is_flag=True, help="Docker Compose mode (no Azure)")
-@click.option(
-    "--plug", default=None,
+@click.option("--plug", default=None,
     type=click.Path(exists=True, file_okay=False, path_type=Path),
     help="Existing project to enhance (Plug Mode)",
 )
+@click.option("--compound", is_flag=True, help="Enable compound engineering mode")
 @click.option("--tutorial", is_flag=True, help="Step-by-step guided mode")
 @click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 def run(
@@ -45,6 +45,7 @@ def run(
     work_dir: Path | None,
     local: bool,
     plug: Path | None,
+    compound: bool,
     tutorial: bool,
     verbose: bool,
 ):
@@ -55,6 +56,7 @@ def run(
         iterations=iterations,
         local_mode=local,
         plug_target=plug,
+        compound_mode=compound,
         tutorial_mode=tutorial,
         verbose=verbose,
     )

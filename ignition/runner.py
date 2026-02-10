@@ -19,7 +19,9 @@ from ignition.stages.decomposer import decompose
 from ignition.stages.discovery import discover, save_discovery
 from ignition.stages.input import validate_input
 from ignition.stages.parser import parse
+from ignition.stages.planning import assess_planning_quality, save_planning_report
 from ignition.stages.prd import generate_prd, init_progress, save_prd
+from ignition.stages.reflection import load_session, save_session
 from ignition.stages.scaffold.agents import scaffold_agents
 from ignition.stages.scaffold.app import scaffold_app
 from ignition.stages.scaffold.bicep import scaffold_infra
@@ -267,21 +269,21 @@ class IgnitionStackAgent:
             console=console,
         ) as progress:
             # Stage 1: Input
-            task = progress.add_task("Stage 1/7 — Validating input...", total=None)
+            task = progress.add_task("Stage 1/8 — Validating input...", total=None)
             self._tutorial_before("input")
             input_type = validate_input(input_path)
             self._tutorial_after("input")
             progress.update(task, completed=True)
 
             # Stage 2: Parse
-            task = progress.add_task("Stage 2/7 — Parsing requirements...", total=None)
+            task = progress.add_task("Stage 2/8 — Parsing requirements...", total=None)
             self._tutorial_before("parse")
             requirements = parse(input_path, input_type, config)
             self._tutorial_after("parse", extra=f"Found {len(requirements.features)} features")
             progress.update(task, completed=True)
 
             # Stage 3: Decompose
-            task = progress.add_task("Stage 3/7 — Decomposing into tasks...", total=None)
+            task = progress.add_task("Stage 3/8 — Decomposing into tasks...", total=None)
             self._tutorial_before("decompose")
             tasks = decompose(requirements, config)
             self._tutorial_after(
@@ -291,7 +293,7 @@ class IgnitionStackAgent:
             progress.update(task, completed=True)
 
             # Stage 4: PRD
-            task = progress.add_task("Stage 4/7 — Building PRD...", total=None)
+            task = progress.add_task("Stage 4/8 — Building PRD...", total=None)
             self._tutorial_before("prd")
             prd = generate_prd(config.project_name, requirements, tasks, config)
             prd_path = save_prd(prd, work)
@@ -299,8 +301,24 @@ class IgnitionStackAgent:
             self._tutorial_after("prd", extra=f"Saved {prd_path.name}")
             progress.update(task, completed=True)
 
+            # Stage 4.5: Planning Quality (Compound Mode)
+            planning_report = None
+            if config.is_compound_mode:
+                task = progress.add_task("Stage 4.5/8 — Assessing planning quality...", total=None)
+                self._tutorial_before("planning")
+                planning_report = assess_planning_quality(prd, config)
+                save_planning_report(planning_report, work)
+                session = load_session(work, config.project_name)
+                session.planning_report = planning_report
+                save_session(session, work)
+                self._tutorial_after(
+                    "planning",
+                    extra=f"Score: {planning_report.average_score:.1f}/100 ({planning_report.passing_tasks}/{planning_report.total_tasks} passing)",
+                )
+                progress.update(task, completed=True)
+
             # Stage 5: Scaffold
-            task = progress.add_task("Stage 5/7 — Scaffolding project...", total=None)
+            task = progress.add_task("Stage 5/8 — Scaffolding project...", total=None)
             self._tutorial_before("scaffold")
             manifest = self._scaffold(prd)
             self._tutorial_after(
@@ -311,7 +329,7 @@ class IgnitionStackAgent:
 
             # Stage 6: Ralph Loop
             task = progress.add_task(
-                f"Stage 6/7 — Ralph Loop (×{config.iterations})...",
+                f"Stage 6/8 — Ralph Loop (×{config.iterations})...",
                 total=None,
             )
             self._tutorial_before("ralph")
@@ -322,8 +340,16 @@ class IgnitionStackAgent:
             )
             progress.update(task, completed=True)
 
-            # Stage 7: Verify
-            task = progress.add_task("Stage 7/7 — Verifying output...", total=None)
+            # Stage 7: Reflection (Compound Mode)
+            if config.is_compound_mode:
+                task = progress.add_task("Stage 7/8 — Generating reflection report...", total=None)
+                self._tutorial_before("reflection")
+                self._generate_compound_report(prd, work, planning_report)
+                self._tutorial_after("reflection", extra="Compound engineering report generated")
+                progress.update(task, completed=True)
+
+            # Stage 8: Verify
+            task = progress.add_task("Stage 8/8 — Verifying output...", total=None)
             self._tutorial_before("verify")
             self._verify(work, prd)
             self._tutorial_after("verify")
@@ -408,6 +434,52 @@ class IgnitionStackAgent:
         from ignition.verify import verify_output
 
         verify_output(work, prd, console=console)
+
+    def _generate_compound_report(
+        self,
+        prd: PRD,
+        work: Path,
+        planning_report,
+    ) -> None:
+        """Generate compound engineering metrics and dashboard."""
+        from ignition.compound import CompoundSession
+        from ignition.metrics import (
+            compute_metrics,
+            save_dashboard,
+            save_metrics,
+            update_metrics_history,
+            append_to_progress,
+        )
+        from ignition.stages.reflection import load_session, save_session
+
+        config = self.config
+        session = load_session(work, config.project_name)
+
+        # Compute metrics
+        metrics = compute_metrics(
+            session=session,
+            iteration=0,  # Initial run
+            planning_report=planning_report,
+            review_results=session.review_results,
+            debt_report=None,  # Will be populated during Ralph loop
+        )
+
+        # Update session
+        update_metrics_history(session, metrics)
+        save_session(session, work)
+
+        # Save individual metrics and dashboard
+        save_metrics(metrics, work)
+        save_dashboard(session, config, work)
+        append_to_progress(work, metrics)
+
+        # Log compound mode summary
+        progress_file = work / "progress.txt"
+        with open(progress_file, "a", encoding="utf-8") as f:
+            f.write("\n## Compound Engineering Mode — Enabled\n")
+            f.write(f"- Planning Quality: {metrics.planning_quality_score:.1f}/100\n")
+            f.write(f"- Compound Score: {metrics.compound_score:.1f}/100\n")
+            f.write(f"- Dashboard: {work / '.compound' / 'dashboard.html'}\n")
 
     def _tutorial_before(self, stage: str) -> None:
         """Show tutorial explanation before a stage (if tutorial mode)."""
