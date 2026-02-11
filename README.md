@@ -451,26 +451,53 @@ ignition/
 
 ## CLI Reference
 
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `ignition run <input-file>` | Run the full IgnitionStack pipeline — parses a use-case document (text, PDF, PPTX, DOCX, or screenshot), decomposes it into atomic tasks, generates a PRD, scaffolds infrastructure + app code, and produces a 20-iteration Ralph loop ready to execute. |
+| `ignition verify <work-dir>` | Validate a generated project directory — checks for required files (PRD, Ralph scripts, Bicep/Compose, migrations, app code, CI/CD) and reports any missing or malformed artifacts. |
+| `ignition example <domain>` | Copy a ready-made domain example (`healthcare`, `finance`, `education`, `oil-and-gas`, `construction`, `telco`, `retail`) to your current directory so you can run the pipeline immediately. |
+| `ignition version` | Print the installed IgnitionStack version. |
+
+### `ignition run` Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--project, -p` | *(required)* | Project name in kebab-case (used for directory names, Azure resources, and git repo). |
+| `--region` | `eastus2` | Azure region for deployed resources. |
+| `--model` | `gpt-4o` | LLM model to use for all pipeline stages (overrides `IGNITION_MODEL` env var). |
+| `--iterations` | `20` | Number of Ralph loop iterations to generate. |
+| `--work-dir` | `./ignition-output` | Output directory for all generated artifacts. |
+| `--local` | off | Generate Docker Compose infrastructure instead of Azure Bicep — no Azure subscription required. |
+| `--plug <path>` | off | Point at an existing project to enhance with AI agents instead of creating a new one (Plug Mode). |
+| `--compound` | off | Enable compound engineering: adds Planning Gate, Review Gate, and Reflection stages for recursive self-improvement across sprints. |
+| `--tutorial` | off | Step-by-step guided mode — explains each stage before/after execution with quizzes and learning summaries. |
+| `--verbose, -v` | off | Show detailed LLM prompts and responses for debugging. |
+
+### Examples
+
 ```bash
-# Run the full pipeline
-ignition run <input-file> --project <name> [options]
+# Full pipeline (Azure)
+ignition run examples/healthcare/use-case.txt --project meridian
 
-Options:
-  --region TEXT       Azure region (default: eastus2)
-  --model TEXT        Model name (default: gpt-4o, or IGNITION_MODEL env var)
-  --iterations INT    Ralph loop iterations (default: 20)
-  --work-dir PATH     Output directory (default: ./ignition-output)
-  --local             Generate Docker Compose instead of Bicep
-  --plug PATH         Existing project directory to enhance (Plug Mode)
-  --compound          Enable compound engineering (plan → review → compound)
-  --tutorial          Step-by-step guided mode with explanations
-  --verbose           Show detailed LLM prompts and responses
+# Local mode (Docker Compose, no Azure)
+ignition run examples/finance/use-case.txt --project riskview --local
 
-# Verify a generated project
-ignition verify <work-dir>
+# Compound engineering (recursive self-improvement)
+ignition run examples/healthcare/use-case.txt --project meridian --compound
 
-# Copy a domain example to current directory
-ignition example <domain>   # healthcare | finance | education | oil-and-gas | construction | telco | retail
+# Plug Mode (enhance existing project)
+ignition run use-case.txt --project my-crm --plug ./existing-app
+
+# Tutorial mode (guided learning)
+ignition run examples/education/use-case.txt --project learntrack --tutorial
+
+# Verify generated output
+ignition verify ./ignition-output
+
+# Copy a domain example locally
+ignition example healthcare
 
 # Print version
 ignition version
